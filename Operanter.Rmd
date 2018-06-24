@@ -1,0 +1,150 @@
+---
+title: "Operanter"
+output: html_document
+---
+```{r echo=FALSE, results="hide", message=FALSE}
+library(ggplot2)
+library(dplyr)
+library(knitr)
+```
+
+#Operanter: open source hardware and software for avian operant conditioning
+\chaptermark{Operanter}
+
+Operant conditioning is a form of learning often used to study psychological and neural processes. Despite the widespread use of operant conditioning, commercially available setups (i.e. Skinner boxes) rely on proprietary software and/or hardware, and free/open source setups incorporate expensive components or are underdeveloped and inflexible. Here we introduce Operanter — free open source software for controlling operant conditioning. Originally designed for avian auditory Go/No-Go training, Operanter runs on a Raspberry Pi computer and is easy to modify using simple XML scripts. It supports other forms of operant conditioning, such as ABX and two-alternative forced choice designs, and can be used to run sound playback experiments. It controls day/night light cycles, reward/punishment procedures, and backup safety mechanisms. It also supports direct control of the operant conditioning hardware for auto- and hand-shaping training stages. Operanter provides summarised information about the training activity to enable animal care staff and researchers to easily determine an animal’s progress. Daily logs are automatically exported to a .csv file for later processing. An associated wiki describes how to build an Operanter-compatible operant conditioning setup based on a Raspberry Pi 2 Model B with all the necessary hardware/electronics. A single setup with a dedicated computer, touchscreen display and reward/punishment hardware can cost as little as £250. The affordability and flexibility of Operanter-based setups allows researchers with small budgets or specific needs to carry out operant conditioning experiments.
+
+##Introduction
+In order to investigate psychological and neural processes, many researchers use operant conditioning. This form of learning occurs when a behaviour is modified by a consequence, which can be either a reinforcement or punishment [@Staddon2003]. Operant conditioning is frequently used to investigate learning processes; this research usually involves rats or mice [e.g. @Saar1998; @Sclafani2016]. Moreover, by training animals using operant conditioning, researchers can investigate perceptual and cognitive abilities [e.g. @Kwak2016; @MilettoPetrazzini2015; @Toal2016]. In linguistics and perceptual psychology, this type of research has frequently used songbirds, whose vocal learning shares similarities with human language development [e.g. @Holveck2007; @Spierings2014]. Operant conditioning is also used to study reward, addiction and drug mechanisms, mostly in rodents [e.g. @Sclafani2016; @GroeberTravis2015], but also in zebrafish and crustaceans [e.g. @Bhimani2016; @Parker2012].
+
+Despite the commonness and utility of operant conditioning, most setups are expensive and require proprietary software and hardware. Few companies publish costs online (e.g Lafayette Neuroscience, Bioseb, Med Associates Inc, Harvard Apparatus), but the average cost of a single operant conditioning chamber has been estimated to be over USD 6000 [@Pineno2014]. Further, while these companies offer many modular features, they are designed only for rats and mice. Some universities have chambers designed specifically for their needs by an intra-university department, (e.g. Leiden University), but costs tend to remain high and altering boxes at a later date can prove expensive.
+
+Open source solutions are currently underdeveloped or require expensive components. In avian operant conditioning, Sound Analysis Pro is often used [@Tchernichovski2000]. However, it requires a National Instruments I/O card (£156) and only runs on the Windows operating system. Sound Analysis Pro is also difficult to customise for training regimens such as Go/No-Go or ABX. A new piece of free software from the Tchernichovsky lab, BirdPuffer, uses social interaction as reinforcement and a puff of air as a punishment [@Tokarev2014]. However, there are some instances for which this setup might not be ideal, such as when testing female preference for male song. Other open source solutions include ArduiPod Box, which is limited to rats interacting with a touchscreen on an iPod touch [@Pineno2014]. Despite incorporating an Arduino computer, the ArduiPod Box software primarily runs on the iPod touch. Despite the author hoping the ArduiPod Box will be extended by users, there is currently no mechanism for doing so. Another open source solution, OpenBehavior, has many of the same aims as our system but appears to only support fixed-ratio reinforcement and is still in early development [@OpenBeh].
+
+This chapter describes Operanter; flexible and intuitive operant conditioning software. Originally built for a specific Go/No-Go auditory task with zebra finches, Operanter was designed to be easily extendable for all operant conditioning paradigms, including ABX/AXB and two-alternative forced choice tasks. It was also designed to facilitate inexpensive operant conditioning setups based on a Raspberry Pi computer module and customisable hardware. To this end, Operanter was written in Java but will require only simple XML files to edit the training schemes. Instructions on how to install Operanter and build an operant conditioning setup are provided on the Operanter GitHub Wiki pages (https://github.com/rflachlan/Operanter/wiki).
+
+##Methods
+
+###Hardware
+The Operanter software controls multiple peripheral components usng a Raspberry Pi running Raspbian.
+
+####Raspberry Pi
+Operanter was developed on a Raspberry Pi B+ running Raspbian Jessie (\autoref{fig-operanterpics}). It has been tested only on Raspbian Jessie 4.1 but should work on earlier versions, albeit without touchscreen support. The Operanter software is designed to be as lightweight as possible and currently requires less than 8MB for both installation and for activity log saving. Operanter uses less than 5% CPU of the Raspberry Pi B+, which allows for multiple other processes to run in parallel on the Raspberry Pi unit, such as sound or video recording/monitoring.
+
+####Peripheral components
+Operanter is designed to work with the DIY hardware on our GitHub Wiki. We describe how to use inexpensive and manufacturer-independent parts to build three types of components: solid state relay-controlled lights, infrared sensors/LED devices for the interactive component, and a linear servo motor to power the food hatch covers for controlling access to food. These components are connected to the Raspberry Pi by ethernet cables, which help to minimise the number of cables necessary to control each chamber. An auditory operant conditioning setup with light deprivation as the punishment and access to food as the reward can cost as little as £250.
+
+Operanter interacts with the peripheral components via a Java class for each component. The exact control of the components can be modified with basic programming, but the creation of new classes for new component designs might require some knowledge of Java. However, with the inclusion of radio-controlled on/off outlets in our preliminary design, any component that can be turned on or off by an outlet can be controlled by Operanter without modification to the source code.
+
+```{r echo=FALSE, fig.cap="\\label{fig-operanterpics}Operanter hardware, Raspberry Pi and electronics. A) Back of Raspberry Pi with GPIO connections to peripheral components. B) Infrared sensors and food hatch inside the cage. C) The chamber with individual Raspberry Pi on top."}
+
+include_graphics('./External_images/operanterpics.pdf')
+```
+
+###Software
+Operanter is written in the Java language; the Java Runtime Environment included in the Raspbian Jessie operating system distribution is sufficient to run Operanter. Operanter also uses the H2 database engine to record and analyse activity and the Pi4J library to communicate with the Raspberry Pi. These are included in the Operanter file and do not require separate installation. Operanter is distributed as a .jar file that runs by double clicking with administrative permissions and does not need installation. It can be downloaded from the Operanter GitHub website.
+
+##Results
+###What Operanter provides
+The Operanter graphical user interface (GUI) comprises a single window with five tabs: Schedule, Operant Experiment, Log, Direct Control, and Stats (\autoref{fig-operanterpics2}). The Schedule tab allows the user to set a daily schedule for when the lights are on and when the experiment runs. This panel can be used to set a safety mechanism (maximum duration that the food hatch can remain closed) and to also set the time, or times, that Operanter automatically exports data. The Operant Experiment tab is where new schemes are created and saved. It provides an interface for setting some of the frequently modified defaults for the peripheral components. For example, the duration of the rewarder can be set here, but the rules that trigger the rewarder remain controlled by the programmed scheme and cannot be modified using the GUI. The Log tab shows a table of all activity and contains a button that forces Operanter to save the log file on demand, either as a comma-separated value or Excel file. Data can also be deleted from this table. The Direct Control tab is where the user can force peripheral component activity, which is especially useful during hand-shaping. For example, the LEDs can be flashed and the food hatch can be opened and closed on demand. The Stats panel shows a summary of how many times each action has been performed by each peripheral component since a user-input time, allowing researchers and animal caretakers to quickly determine the level of an animal's activity and success.
+
+```{r echo=FALSE, fig.cap="\\label{fig-operanterpics2}Operanter software. A) Schedule tab. B) Operant Experiment tab. C) Log tab. D) Stats tab."}
+
+include_graphics('./External_images/operanterpics2.pdf')
+```
+
+Changes to the operant experiment design must be made at multiple levels. The GUI Operant Experiment tab is useful for changing a few simple settings for the peripheral components, but changes to the relationship between peripheral components must currently be made by editing a scheme in the Java code. We plan to extend the software so schemes can be added by importing syntactically simple XML files with the logic for the new scheme. Only two schemes (Go/No-Go and a preliminary shaping phase) are currently available, but we plan to add schemes for ABX, AXB, 2-alternative forced choice, and preference test designs. Finally, for any users who need to make significant changes to Operanter, such as adding a new peripheral component, the source code is available on the Operanter Github website.
+
+Operanter is robust software that has functioned as intended for the training of ~40 birds. It controls the daily light schedule and operant conditioning experimental design without fail, and allows a user to directly control the peripheral components with precision. Audio playback is of a high quality with no perceptible "clicks" or distortion. Anecdotally, the noise of the food hatch mechanism distrubs the birds to a similar degree as other setups (e.g. Leiden University).
+
+###Ease of use
+Operanter has been designed to be as easy to use and as intuitive as possible. The GUI comprises five tabs with straightforward functionality. Instructions on the GitHub Wiki assume little knowledge of Raspberry Pi programming and electronics, and will soon be updated to be more thorough.
+
+###Mechanisms of support
+Operanter is available through a GitHub repository; both the executable .jar file containing software and the source code can be downloaded. Operanter will continue to be updated with new bug fixes whenever they are discovered. The Wiki on the GitHub repository can be edited by users who would like to contribute documentation. The source code can be forked and modified by anyone who would like to extend the code.
+
+###Successful work completed with Operanter
+Roughly 40 female zebra finches have successfully learned to discriminate two stimuli using Operanter. Female zebra finches can achieve a standard experimental criterion of discrimination of two conspecific songs within 400 trials. Zebra finches trained using the Operanter software and hardware achieve, on average, a lower asymptotic performance compared to zebra finches trained using proprietary software and hardware at the University of Leiden (\autoref{fig-leilon}), but we suggest that this is likely due to significant differences in the conditioning protocol. Specifically, Operanter birds are only trained until the experimenter goes home, and receive food _ad libitum_ after this time, to comply with UK Home Office regulations; in contrast, birds at the University of Leiden never receive food _ad libitum_ and are engaged with the operant apparatus throughout the entire photoperiod.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="\\label{fig-leilon}Learning curves for Leiden birds (proprietary) and London birds (Operanter).", fig.width=6}
+
+LeiData <- read.csv("./Data/LeidenActivity.csv")
+LeiData2 <- read.csv("./Data/Leiden_condition.csv")
+LeiData <- left_join(LeiData, LeiData2, by="BirdID") %>%
+  filter(Condition != "Hab")
+LonData <- read.csv("./Data/LondonActivity.csv")
+LeiData$BirdID <- as.factor(LeiData$BirdID)
+LonData$BirdID <- as.factor(LonData$BirdID)
+LonData <- LonData %>%
+  mutate(Cohort = "London") %>%
+  mutate(Bin = (Index - IndexBase) %/% 100) %>%
+  select(BirdID, Stimulus, Correct, Bin, Cohort)
+LonData$Cohort <- as.factor(LonData$Cohort)
+LeiData <- LeiData %>%
+  select(BirdID, Stimulus, Correct, Bin, Cohort)
+
+LeiLon <- bind_rows(LeiData, LonData)
+LeiLon$BirdID <- as.factor(LeiLon$BirdID)
+LeiLon$Cohort <- as.factor(LeiLon$Cohort)
+
+minBin <- 0
+maxBin <- 30
+Go <- LeiLon %>%
+  filter(Bin > minBin) %>%
+  filter(Bin < maxBin) %>%
+  filter(Stimulus=="GO") %>%
+  group_by(Bin, BirdID, Cohort) %>%
+  summarise(TotalGo = n())
+  
+NoGo <- LeiLon %>%
+  filter(Bin > minBin) %>%
+  filter(Bin < maxBin) %>%
+  filter(Stimulus=="NO-GO") %>%
+  group_by(Bin, BirdID, Cohort) %>%
+  summarise(TotalNoGo = n())
+
+CorrGo <- LeiLon %>%
+  filter(Bin > minBin) %>%
+  filter(Bin < maxBin) %>%
+  filter(Stimulus=="GO") %>%
+  group_by(Bin, BirdID, Cohort) %>%
+  summarise(CorrectGo = sum(Correct))
+
+CorrNoGo <- LeiLon %>%
+  filter(Bin > minBin) %>%
+  filter(Bin < maxBin) %>%
+  filter(Stimulus=="NO-GO") %>%
+  group_by(Bin, BirdID, Cohort) %>%
+  summarise(CorrectNoGo = sum(Correct))
+  
+GNG <- left_join(Go, NoGo, by=c('Bin', 'BirdID'))
+Corr <- left_join(CorrGo, CorrNoGo, by=c('Bin', 'BirdID'))
+All <- left_join(GNG, Corr, by=c('Bin', 'BirdID'))
+
+All <- All %>%
+  filter(!is.na(CorrectGo)) %>%
+  filter(!is.na(TotalGo)) %>%
+  filter(!is.na(CorrectNoGo)) %>%
+  filter(!is.na(TotalNoGo)) %>%
+  filter(BirdID != 301) %>%
+  select(Bin, BirdID, Cohort.x.x, TotalGo, TotalNoGo, CorrectGo, CorrectNoGo)
+
+All$Cohort <- All$Cohort.x.x
+
+All$zHIT <- qnorm(All$CorrectGo/All$TotalGo)
+All$zFA <- qnorm(1- All$CorrectNoGo/All$TotalNoGo)
+All$dr <- All$CorrectGo/All$TotalGo / (All$CorrectGo/All$TotalGo + (1 - (All$CorrectNoGo/All$TotalNoGo)))
+# correct responses to Go stimuli divided by the sum of the proportion correct responses to Go stimuli and the proportion incorrect responses to No-Go stimuli)
+All$dprime <- All$zHIT - All$zFA
+
+drplot <- ggplot(data=All, aes(x=Bin, y=dprime, color=Cohort)) + geom_point(aes(colour=Cohort)) + stat_smooth(method = "lm", formula = y ~ log(x), size=1) + ylab("d'") + xlab("100-trial bins")
+drplot
+
+
+```
+
+##Discussion
+Our software will soon have the flexibility to implement any operant conditioning experimental design by importing an XML file. Further, though we do not provide any schemes for classical conditioning, these experimental designs can be written and implemented by Operanter with minor modifications to the source code that controls the peripheral components. As demonstrated by its success with controlling operant conditioning training for multiple experiments, Operanter should be considered robust. Because it is open source, it can be developed by any user who wishes to extend or improve the software.
+
+We hope that Operanter will be used and developed by users in other labs who wish to conduct operant conditioning experiments. We make this as simple as possible by releasing Operanter through GitHub. We plan to start a library on the GitHub Wiki of XML schemes, and we hope that users will upload their own schemes to aid others. Further developments will include updates to the Stats tab to make preliminary data analysis easier. We plan to release R code that can parse the activity logs and provide simple statistics, such as d$'$. We also hope to provide some basic functionality for real-time auditory stimulus generation.
+
+In conclusion, Operanter provides a much-needed open source alternative to commercial and proprietary operant conditioning setups. A comprehensive Wiki will make it possible for anyone, regardless of prior electronic or programming knowledge, to build a setup from inexpensive components. Operanter enables researchers with small budgets or specific requirements, such as non-rodent subjects, to build operant conditioning setups. These setups can be enhanced and maintained by end users without the need to rely on proprietary solutions that do not release source code.
