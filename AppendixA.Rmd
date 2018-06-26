@@ -7,4 +7,4 @@ output: html_document
 \addcontentsline{toc}{chapter}{Appendix A}
 \pagestyle{plain}
 
-This document was composed using R Markdown in RStudio. A respository containing all raw data, R statistical code, and other text necessary to reproduce this thesis is available at http://github.com/maevemcmahon/thesis
+This document was composed using R Markdown in RStudio. A respository containing all raw data, R statistical code, and other text necessary to reproduce this thesis in its entirety is available at http://github.com/maevemcmahon/thesis
